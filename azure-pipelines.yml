@@ -1,0 +1,21 @@
+name: poc-script-github-source
+
+trigger:
+  branches:
+    include:
+      - main
+      - development
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+  - script: |
+      echo "🐙 Pipeline reads from GITHUB directly!"
+      echo "Branch: $(Build.SourceBranchName)"
+      echo "Commit: $(Build.SourceVersion)"
+      echo "Files in repo:"
+      find . -type f | sort
+    displayName: 'Show GitHub repo contents'
