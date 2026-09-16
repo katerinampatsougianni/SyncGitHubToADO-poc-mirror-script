@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - development
+  workflow_run:
+    workflows: ["*"]
+    types:
+      - completed
+  workflow_dispatch:  # manual trigger
 
 jobs:
   mirror:
@@ -15,13 +20,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - name: Push mirror to Azure DevOps
         run: |
           git config user.email "mirror-bot@github.com"
           git config user.name "Mirror Bot"
+          
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [ -z "$BRANCH" ]; then
+            BRANCH=${{ github.event.workflow_run.head_branch }}
+          fi
+          
+          echo "🔄 Mirroring branch: $BRANCH"
+          
           git remote add ado https://anything:${{ secrets.POC_MIRROR_SCRIPT_PAT }}@dev.azure.com/ACN-CCoE/Enerwave%20-%20Digital%20Services/_git/SyncGitHubToADO-poc-mirror-script.git
-          git push ado HEAD:${{ github.ref_name }} --force
+          git push ado HEAD:$BRANCH --force
 
       - name: Confirm mirror success
-        run: echo "✅ Mirrored branch ${{ github.ref_name }} to Azure DevOps"
+        run: echo "✅ Mirrored to Azure DevOps successfully!"
