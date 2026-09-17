@@ -40,4 +40,4 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}},
                  "templateParameters":{"version":"1.0.${{ github.run_number }}"}}' \
-            "https://dev.azure.com/ACN-CCoE/Enerwave%20-%20Digital%20Services/_apis/pipelines/<pipelineId>/runs?api-version=7.1"
+            "https://dev.azure.com/ACN-CCoE/Enerwave%20-%20Digital%20Services/_apis/pipelines/103/runs?api-version=7.1"
