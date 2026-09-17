@@ -1,0 +1,40 @@
+trigger: none
+
+parameters:
+  - name: version
+    type: string
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  registry: enerwaveacrpoc001.azurecr.io
+  image: my-app
+
+steps:
+- task: UniversalPackages@0
+  displayName: Download image package
+  inputs:
+    command: download
+    downloadDirectory: '$(Pipeline.Workspace)/image'
+    feedsToUse: internal
+    vstsFeed: images
+    vstsFeedPackage: my-app
+    vstsPackageVersion: ${{ parameters.version }}
+
+- script: |
+    gunzip -c $(Pipeline.Workspace)/image/image.tar.gz | docker load
+    docker images
+  displayName: Load image into daemon
+
+- task: AzureCLI@2
+  displayName: Push to ACR
+  inputs:
+    azureSubscription: ener-acr-push-sc
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az acr login --name enerwaveacrpoc001
+      LOADED=$(docker images --format '{{.Repository}}:{{.Tag}}' | head -1)
+      docker tag $LOADED $(registry)/$(image):${{ parameters.version }}
+      docker push $(registry)/$(image):${{ parameters.version }}
