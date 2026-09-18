@@ -9,7 +9,7 @@ pool:
 
 variables:
   registry: enerwaveacrpoc001.azurecr.io
-  image: my-app
+  image: my-app-katerina
 
 steps:
 - task: UniversalPackages@0
