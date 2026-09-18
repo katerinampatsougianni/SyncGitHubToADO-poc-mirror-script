@@ -35,9 +35,21 @@ jobs:
 
       - name: Trigger ADO release pipeline
         run: |
-          curl -s -X POST \
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
             -u ":${{ secrets.ADO_PUBLISH_ARTIFACT }}" \
             -H "Content-Type: application/json" \
             -d '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}},
                  "templateParameters":{"version":"1.0.${{ github.run_number }}"}}' \
-            "https://dev.azure.com/ACN-CCoE/Enerwave%20-%20Digital%20Services/_apis/pipelines/106/runs?api-version=7.1"
+            "https://dev.azure.com/ACN-CCoE/Enerwave%20-%20Digital%20Services/_apis/pipelines/106/runs?api-version=7.1")
+
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Failed to trigger ADO pipeline! Status: $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ ADO pipeline triggered successfully!"
